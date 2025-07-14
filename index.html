@@ -17,7 +17,7 @@
           appId: "0fbc524e-85f3-44d7-a151-ffb00d35f965",
           webPush: {
             notification: {
-              icon: "/default-icon.png", // Optional: avoid 404 error
+              icon: "/default-icon.png", // optional but recommended
             },
           },
         });
@@ -57,8 +57,8 @@
           const result = await OneSignal.Notifications.requestPermission();
           console.log("User response:", result);
 
-          // Check and update status after request
-          const isSubscribed = await OneSignal.User.PushSubscription.isSubscribed();
+          const sub = await OneSignal.User.PushSubscription.getSubscription();
+          const isSubscribed = sub !== null;
           statusDiv.textContent =
             "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
         });
@@ -66,15 +66,17 @@
 
       // On load: Check current subscription state
       OneSignalDeferred.push(async function (OneSignal) {
-        const isSubscribed = await OneSignal.User.PushSubscription.isSubscribed();
+        const sub = await OneSignal.User.PushSubscription.getSubscription();
+        const isSubscribed = sub !== null;
         statusDiv.textContent =
           "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
 
-        // Listen for future subscription changes
+        // Listen for subscription changes
         OneSignal.User.PushSubscription.addEventListener("change", async () => {
-          const updatedSub = await OneSignal.User.PushSubscription.isSubscribed();
+          const sub = await OneSignal.User.PushSubscription.getSubscription();
+          const isSubscribed = sub !== null;
           statusDiv.textContent =
-            "Notification Status: " + (updatedSub ? "Enabled" : "Disabled");
+            "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
         });
       });
     </script>
