@@ -17,7 +17,7 @@
           appId: "0fbc524e-85f3-44d7-a151-ffb00d35f965",
           webPush: {
             notification: {
-              icon: "/default-icon.png", // optional but recommended
+              icon: "/default-icon.png", // optional
             },
           },
         });
@@ -51,32 +51,35 @@
       const btn = document.getElementById("enable-notif");
       const statusDiv = document.getElementById("notif-status");
 
-      // On button click → request permission
+      // Check notification permission and update status
+      async function updateStatus() {
+        OneSignalDeferred.push(async function (OneSignal) {
+          const permission = await OneSignal.Notifications.permission;
+          statusDiv.textContent =
+            "Notification Status: " +
+            (permission === "granted" ? "Enabled" : "Disabled");
+        });
+      }
+
+      // On button click → ask for permission
       btn.addEventListener("click", function () {
         OneSignalDeferred.push(async function (OneSignal) {
           const result = await OneSignal.Notifications.requestPermission();
           console.log("User response:", result);
-
-          const sub = await OneSignal.User.PushSubscription.getSubscription();
-          const isSubscribed = sub !== null;
-          statusDiv.textContent =
-            "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
+          updateStatus(); // update status after permission
         });
       });
 
-      // On load: Check current subscription state
-      OneSignalDeferred.push(async function (OneSignal) {
-        const sub = await OneSignal.User.PushSubscription.getSubscription();
-        const isSubscribed = sub !== null;
-        statusDiv.textContent =
-          "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
+      // Initial check on page load
+      updateStatus();
 
-        // Listen for subscription changes
-        OneSignal.User.PushSubscription.addEventListener("change", async () => {
-          const sub = await OneSignal.User.PushSubscription.getSubscription();
-          const isSubscribed = sub !== null;
+      // Listen for permission changes (if user changes in browser)
+      OneSignalDeferred.push(async function (OneSignal) {
+        OneSignal.Notifications.addEventListener("permissionChange", async (event) => {
+          const newState = event.to;
           statusDiv.textContent =
-            "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
+            "Notification Status: " +
+            (newState === "granted" ? "Enabled" : "Disabled");
         });
       });
     </script>
