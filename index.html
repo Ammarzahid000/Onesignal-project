@@ -1,75 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OneSignal PWA Notification</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OneSignal PWA Notification</title>
 
-  <!-- OneSignal SDK (v16) -->
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function (OneSignal) {
-      await OneSignal.init({
-        appId: "6b932b86-f73e-4068-ac7b-d13efe66ebce",
-        safari_web_id: "web.onesignal.auto.542681a0-163f-4163-99a6-540b36eadb1c",
-        notifyButton: {
-          enable: false,
-        },
-      });
-    });
-  </script>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 40px;
-      text-align: center;
-    }
-    #enable-notif {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 20px;
-    }
-    #notif-status {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Welcome to site</h1>
-  <button id="enable-notif">Enable Notifications</button>
-  <div id="notif-status">Notification Status: Checking...</div>
-
-  <script>
-    const btn = document.getElementById('enable-notif');
-    const statusDiv = document.getElementById('notif-status');
-
-    // On button click → request permission
-    btn.addEventListener('click', function () {
+    <!-- OneSignal SDK (v16) -->
+    <script
+      src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+      defer
+    ></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function (OneSignal) {
-        const result = await OneSignal.Notifications.requestPermission();
-        console.log("User response:", result);
+        await OneSignal.init({
+          appId: "0fbc524e-85f3-44d7-a151-ffb00d35f965",
+        });
       });
-    });
+    </script>
 
-    // Check current subscription state
-    OneSignalDeferred.push(async function (OneSignal) {
-      const isPushEnabled = await OneSignal.Notifications.permission;
-      statusDiv.textContent =
-        "Notification Status: " + (isPushEnabled === "granted" ? "Enabled" : "Disabled");
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 40px;
+        text-align: center;
+      }
+      #enable-notif {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin-top: 20px;
+      }
+      #notif-status {
+        margin-top: 15px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to site</h1>
+    <button id="enable-notif">Enable Notifications</button>
+    <div id="notif-status">Notification Status: Checking...</div>
 
-      // Listen for changes
-      OneSignal.Notifications.addEventListener('permissionChange', async (event) => {
-        const newState = event.to;
+    <script>
+      const btn = document.getElementById("enable-notif");
+      const statusDiv = document.getElementById("notif-status");
+
+      // On button click → request permission
+      btn.addEventListener("click", function () {
+        OneSignalDeferred.push(async function (OneSignal) {
+          const result = await OneSignal.Notifications.requestPermission();
+          console.log("User response:", result);
+        });
+      });
+
+      // Check current subscription state
+      OneSignalDeferred.push(async function (OneSignal) {
+        const isPushEnabled = await OneSignal.Notifications.permission;
         statusDiv.textContent =
-          "Notification Status: " + (newState === "granted" ? "Enabled" : "Disabled");
-      });
-    });
-  </script>
+          "Notification Status: " +
+          (isPushEnabled === "granted" ? "Enabled" : "Disabled");
 
-</body>
+        // Listen for changes
+        OneSignal.Notifications.addEventListener(
+          "permissionChange",
+          async (event) => {
+            const newState = event.to;
+            statusDiv.textContent =
+              "Notification Status: " +
+              (newState === "granted" ? "Enabled" : "Disabled");
+          }
+        );
+      });
+    </script>
+  </body>
 </html>
