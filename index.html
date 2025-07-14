@@ -11,7 +11,7 @@
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function (OneSignal) {
         await OneSignal.init({
-          appId: "0fbc524e-85f3-44d7-a151-ffb00d35f965",
+          appId: "0fbc524e-85f3-44d7-a151-ffb00d35f965", // Replace with your OneSignal App ID
           serviceWorkerPath: "OneSignalSDKWorker.js",
           serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js",
           webPush: {
@@ -34,6 +34,7 @@
         padding: 10px 20px;
         font-size: 16px;
         margin-top: 20px;
+        cursor: pointer;
       }
       #notif-status {
         margin-top: 15px;
@@ -50,32 +51,40 @@
       const btn = document.getElementById("enable-notif");
       const statusDiv = document.getElementById("notif-status");
 
-      // Check status
-      async function checkStatus() {
+      // Main function to update notification status
+      function updateStatus() {
         OneSignalDeferred.push(async function (OneSignal) {
-          const permission = await OneSignal.Notifications.permission;
-          const userId = await OneSignal.User.getId(); // returns null if not subscribed
-          const isEnabled = permission === "granted" && userId !== null;
-
-          statusDiv.textContent = "Notification Status: " + (isEnabled ? "Enabled" : "Disabled");
+          try {
+            const permission = await OneSignal.Notifications.permission;
+            const userId = await OneSignal.User.getId();
+            const isEnabled = permission === "granted" && userId !== null;
+            statusDiv.textContent = "Notification Status: " + (isEnabled ? "Enabled" : "Disabled");
+          } catch (e) {
+            statusDiv.textContent = "Notification Status: Error";
+            console.error("Error checking status:", e);
+          }
         });
       }
 
-      // Click to enable
-      btn.addEventListener("click", function () {
+      // Ask for permission on click
+      btn.addEventListener("click", () => {
         OneSignalDeferred.push(async function (OneSignal) {
-          await OneSignal.Notifications.requestPermission();
-          setTimeout(checkStatus, 1000); // wait for userId to be assigned
+          try {
+            await OneSignal.Notifications.requestPermission();
+            setTimeout(updateStatus, 1000);
+          } catch (e) {
+            console.error("Permission error:", e);
+          }
         });
       });
 
-      // Initial load
-      setTimeout(checkStatus, 1500);
+      // Initial status check on load
+      setTimeout(updateStatus, 1500);
 
-      // When permission changes (browser settings)
+      // Update UI when browser permission changes
       OneSignalDeferred.push(async function (OneSignal) {
-        OneSignal.Notifications.addEventListener("permissionChange", async () => {
-          setTimeout(checkStatus, 1000);
+        OneSignal.Notifications.addEventListener("permissionChange", () => {
+          setTimeout(updateStatus, 1000);
         });
       });
     </script>
