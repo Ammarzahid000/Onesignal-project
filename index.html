@@ -5,19 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OneSignal PWA Notification</title>
 
-    <!-- OneSignal SDK (v16) -->
-    <script
-      src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
-      defer
-    ></script>
+    <!-- OneSignal SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function (OneSignal) {
         await OneSignal.init({
           appId: "0fbc524e-85f3-44d7-a151-ffb00d35f965",
+          serviceWorkerPath: "OneSignalSDKWorker.js",
+          serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js",
           webPush: {
             notification: {
-              icon: "/default-icon.png", // optional fallback
+              icon: "/default-icon.png"
             },
           },
         });
@@ -51,54 +50,32 @@
       const btn = document.getElementById("enable-notif");
       const statusDiv = document.getElementById("notif-status");
 
-      // Function to retry checking for OneSignal subscription (wait for userId)
-      async function checkAndUpdateStatus() {
+      // Check status
+      async function checkStatus() {
         OneSignalDeferred.push(async function (OneSignal) {
-          let attempts = 0;
-          let isSubscribed = false;
+          const permission = await OneSignal.Notifications.permission;
+          const userId = await OneSignal.User.getId(); // returns null if not subscribed
+          const isEnabled = permission === "granted" && userId !== null;
 
-          while (attempts < 10) {
-            try {
-              const permission = await OneSignal.Notifications.permission;
-
-              if (permission !== "granted") {
-                statusDiv.textContent = "Notification Status: Disabled";
-                return;
-              }
-
-              const userId = await OneSignal.User.getId();
-              if (userId) {
-                isSubscribed = true;
-                break;
-              }
-            } catch (e) {
-              // wait and retry
-            }
-
-            await new Promise((res) => setTimeout(res, 500));
-            attempts++;
-          }
-
-          statusDiv.textContent =
-            "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
+          statusDiv.textContent = "Notification Status: " + (isEnabled ? "Enabled" : "Disabled");
         });
       }
 
-      // Button click → request permission
+      // Click to enable
       btn.addEventListener("click", function () {
         OneSignalDeferred.push(async function (OneSignal) {
           await OneSignal.Notifications.requestPermission();
-          checkAndUpdateStatus();
+          setTimeout(checkStatus, 1000); // wait for userId to be assigned
         });
       });
 
-      // Initial status check
-      checkAndUpdateStatus();
+      // Initial load
+      setTimeout(checkStatus, 1500);
 
-      // Listen for permission changes (live updates)
+      // When permission changes (browser settings)
       OneSignalDeferred.push(async function (OneSignal) {
-        OneSignal.Notifications.addEventListener("permissionChange", async (event) => {
-          checkAndUpdateStatus();
+        OneSignal.Notifications.addEventListener("permissionChange", async () => {
+          setTimeout(checkStatus, 1000);
         });
       });
     </script>
