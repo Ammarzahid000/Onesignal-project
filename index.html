@@ -15,6 +15,11 @@
       OneSignalDeferred.push(async function (OneSignal) {
         await OneSignal.init({
           appId: "0fbc524e-85f3-44d7-a151-ffb00d35f965",
+          webPush: {
+            notification: {
+              icon: "/default-icon.png", // Optional: avoid 404 error
+            },
+          },
         });
       });
     </script>
@@ -51,26 +56,26 @@
         OneSignalDeferred.push(async function (OneSignal) {
           const result = await OneSignal.Notifications.requestPermission();
           console.log("User response:", result);
+
+          // Check and update status after request
+          const isSubscribed = await OneSignal.User.PushSubscription.isSubscribed();
+          statusDiv.textContent =
+            "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
         });
       });
 
-      // Check current subscription state
+      // On load: Check current subscription state
       OneSignalDeferred.push(async function (OneSignal) {
-        const isPushEnabled = await OneSignal.Notifications.permission;
+        const isSubscribed = await OneSignal.User.PushSubscription.isSubscribed();
         statusDiv.textContent =
-          "Notification Status: " +
-          (isPushEnabled === "granted" ? "Enabled" : "Disabled");
+          "Notification Status: " + (isSubscribed ? "Enabled" : "Disabled");
 
-        // Listen for changes
-        OneSignal.Notifications.addEventListener(
-          "permissionChange",
-          async (event) => {
-            const newState = event.to;
-            statusDiv.textContent =
-              "Notification Status: " +
-              (newState === "granted" ? "Enabled" : "Disabled");
-          }
-        );
+        // Listen for future subscription changes
+        OneSignal.User.PushSubscription.addEventListener("change", async () => {
+          const updatedSub = await OneSignal.User.PushSubscription.isSubscribed();
+          statusDiv.textContent =
+            "Notification Status: " + (updatedSub ? "Enabled" : "Disabled");
+        });
       });
     </script>
   </body>
