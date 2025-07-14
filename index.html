@@ -6,7 +6,10 @@
     <title>OneSignal PWA Notification</title>
 
     <!-- OneSignal SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script
+      src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+      defer
+    ></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function (OneSignal) {
@@ -16,7 +19,7 @@
           serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js",
           webPush: {
             notification: {
-              icon: "/default-icon.png"
+              icon: "/default-icon.png",
             },
           },
         });
@@ -56,9 +59,14 @@
         OneSignalDeferred.push(async function (OneSignal) {
           try {
             const permission = await OneSignal.Notifications.permission;
-            const userId = await OneSignal.User.getId();
-            const isEnabled = permission === "granted" && userId !== null;
-            statusDiv.textContent = "Notification Status: " + (isEnabled ? "Enabled" : "Disabled");
+            const isPushEnabled = await OneSignal.Notifications.isPushEnabled();
+            statusDiv.textContent =
+              "Notification Status: " +
+              (isPushEnabled ? "Enabled" : "Disabled");
+            const isEnabled = permission === "granted" || isPushEnabled;
+            btn.disabled = isEnabled;
+            statusDiv.textContent =
+              "Notification Status: " + (isEnabled ? "Enabled" : "Disabled");
           } catch (e) {
             statusDiv.textContent = "Notification Status: Error";
             console.error("Error checking status:", e);
