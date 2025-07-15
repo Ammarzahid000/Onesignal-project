@@ -7,11 +7,17 @@
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <link rel="apple-touch-icon" href="icon-192x192.png" />
 
     <!-- OneSignal SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script
+      src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+      defer
+    ></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function (OneSignal) {
@@ -72,19 +78,23 @@
       }
 
       async function checkStatus() {
-        OneSignalDeferred.push(async function (OneSignal) {
-          const permission = await OneSignal.Notifications.permission;
-          const userId = await OneSignal.User.getId();
-          const isEnabled = permission === "granted" && userId;
-          updateStatus(isEnabled ? "Enabled" : "Disabled");
-        });
+        try {
+          const permission = await Notification.requestPermission();
+          console.log(permission);
+          updateStatus(permission === "granted" ? "Enabled" : "Disabled");
+        } catch (e) {
+          updateStatus("Error");
+          console.error("Failed to check permission:", e);
+        }
       }
 
       btn.addEventListener("click", function () {
         const iOSVersion = getiOSVersion();
 
         if (isRunningStandaloneiOS() && (!iOSVersion || iOSVersion < 16)) {
-          alert("Push notifications require iOS 16.4 or higher. Please update your iOS to use this feature.");
+          alert(
+            "Push notifications require iOS 16.4 or higher. Please update your iOS to use this feature."
+          );
           updateStatus("Not supported on your iOS version");
           return;
         }
@@ -98,7 +108,10 @@
       setTimeout(checkStatus, 2000);
 
       OneSignalDeferred.push(async function (OneSignal) {
-        OneSignal.Notifications.addEventListener("permissionChange", checkStatus);
+        OneSignal.Notifications.addEventListener(
+          "permissionChange",
+          checkStatus
+        );
       });
     </script>
   </body>
